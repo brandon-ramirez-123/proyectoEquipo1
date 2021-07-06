@@ -3,13 +3,10 @@ import re
 import sqlite3
 import traceback
 
-from PyQt5 import QtGui, uic, QtCore
-from PyQt5.QtCore import QCoreApplication, QRect, QSize, Qt, pyqtSignal
+from PyQt5 import QtGui, uic
+from PyQt5.QtCore import QCoreApplication, QRect, QSize, Qt
 from PyQt5.QtWidgets import QDialog, QLabel, QLineEdit, QMainWindow, QMessageBox, QPushButton, QTableWidgetItem, \
     QWidget, QAbstractItemView
-from datetime import datetime
-from src.HU003.modelo.Estudiante import Estudiante
-from src.HU003.modelo.declarative_base import Session, engine, Base
 
 
 class uiEstudiantes(QMainWindow):
@@ -106,7 +103,7 @@ class uiEstudiantes(QMainWindow):
     def cargarTabla(self):
         self.tbEstudiantes.setRowCount(0)
         conex = sqlite3.connect(self.rutadb)
-        estudiantes = conex.execute("SELECT * FROM estudiante")
+        estudiantes = conex.execute("SELECT * FROM estudiante ORDER BY ID ASC")
         for fila, estudiante in enumerate(estudiantes):
             self.tbEstudiantes.insertRow(fila)
             for columna, data in enumerate(estudiante):
@@ -206,7 +203,7 @@ class uiEstudiantes(QMainWindow):
         self.tbEstudiantes.setRowCount(0)
         conex = sqlite3.connect(self.rutadb)
         eleccion = conex.execute(
-            "SELECT * FROM estudiante WHERE ID LIKE '%" + ides + "%' AND nombres LIKE '%" + nomb + "%' AND apellidoPaterno LIKE '%" + apat + "%' AND apellidoMaterno LIKE '%" + amat + "%'")
+            "SELECT * FROM estudiante WHERE ID LIKE '%" + ides + "%' AND nombres LIKE '%" + nomb + "%' AND apellidoPaterno LIKE '%" + apat + "%' AND apellidoMaterno LIKE '%" + amat + "%' ORDER BY ID ASC")
         for fila, estudiante in enumerate(eleccion):
             self.tbEstudiantes.insertRow(fila)
             for columna, data in enumerate(estudiante):
@@ -311,9 +308,6 @@ class uiEstudiantes(QMainWindow):
         else:
             QMessageBox.information(self, "Datos incorrectos", "Revise los datos ingresados.", QMessageBox.Ok)
 
-    def eliminarEstudiante(self):
-        QMessageBox.information(self, "Datos correctos", "Se eliminará: " + self.estID.text(), QMessageBox.Ok)
-
     def actualizarEstudiante(self):
         nombN = self.estNombres.text()
         apatN = self.estApPat.text()
@@ -336,6 +330,7 @@ class uiEstudiantes(QMainWindow):
                 if paso:
                     self.cargarTabla()
                     self.limpiar()
+                    self.salirEdicion()
                     self.estID.setStyleSheet("background-color: lightgray;\nborder: 1px solid black;")
                     self.estID.setReadOnly(True)
                     try:
@@ -350,6 +345,30 @@ class uiEstudiantes(QMainWindow):
             else:
                 QMessageBox.information(self, "Datos incorrectos", "Revise los datos ingresados.", QMessageBox.Ok)
 
+    def eliminarEstudiante(self):
+        paso = False
+        try:
+            conex = sqlite3.connect(self.rutadb)
+            eleccion = conex.cursor()
+            eleccion.execute(
+                "delete from estudiante where ID='" + str(self.ident) + "'")
+            conex.commit()
+            conex.close()
+            paso = True
+        except:
+            QMessageBox.information(self, "Error!", traceback.print_exc(), QMessageBox.Ok)
+        if paso:
+            try:
+                self.popup = eliminarEstudiante()
+                self.popup.setDatos(self.ident, self.nombre, self.apPat, self.apMat)
+                self.popup.insDatos()
+                self.popup.show()
+                self.popup.exec_()
+                if self.popup.close:
+                    self.cargarTabla()
+            except:
+                QMessageBox.information(self, "Error!", traceback.print_exc(), QMessageBox.Ok)
+
 
 class anadirEstudiante(QDialog):
     ident = 0
@@ -360,12 +379,12 @@ class anadirEstudiante(QDialog):
     def __init__(self):
         # Inicializacion
         super().__init__()
-        self.hu003_estudiante()
+        self.est_anadir()
 
         # Eventos
         self.nestCerrar.clicked.connect(self.close)
 
-    def hu003_estudiante(self):
+    def est_anadir(self):
         self.setWindowFlags(Qt.WindowCloseButtonHint)
         self.setWindowTitle('¡Éxito!')
         self.resize(340, 200)
@@ -454,12 +473,12 @@ class actualizarEstudiante(QDialog):
     def __init__(self):
         # Inicializacion
         super().__init__()
-        self.hu003_actualizar()
+        self.est_actualizar()
 
         # Eventos
         self.nestCerrar.clicked.connect(self.close)
 
-    def hu003_actualizar(self):
+    def est_actualizar(self):
         self.setWindowFlags(Qt.WindowCloseButtonHint)
         self.setWindowTitle('¡Éxito!')
         self.resize(340, 380)
@@ -609,3 +628,113 @@ class actualizarEstudiante(QDialog):
         else:
             self.aestApMatA.setStyleSheet("border:1px solid green;")
             self.aestApMatN.setStyleSheet("border:1px solid green;")
+
+
+class eliminarEstudiante(QDialog):
+    ident = 0
+    nombre = ""
+    apPat = ""
+    apMat = ""
+
+    def __init__(self):
+        # Inicializacion
+        super().__init__()
+        self.est_actualizar()
+
+        # Eventos
+        self.nestCerrar.clicked.connect(self.close)
+        self.nestCancelar.clicked.connect(self.cancelarEliminacion)
+
+    def est_actualizar(self):
+        self.setWindowFlags(Qt.WindowCloseButtonHint)
+        self.setWindowTitle('¡Éxito!')
+        self.resize(340, 200)
+        self.setMinimumSize(QSize(340, 200))
+        self.setMaximumSize(QSize(340, 200))
+        self.centralwidget = QWidget(self)
+        self.centralwidget.setObjectName("centralwidget")
+        self.nestApMat = QLineEdit(self.centralwidget)
+        self.nestApMat.setGeometry(QRect(140, 130, 181, 21))
+        self.nestApMat.setStyleSheet("border: 1px solid lightgray;")
+        self.nestApMat.setMaxLength(255)
+        self.nestApMat.setReadOnly(True)
+        self.nestApMat.setObjectName("nestApMat")
+        self.nest_lblApMat = QLabel(self.centralwidget)
+        self.nest_lblApMat.setGeometry(QRect(20, 130, 111, 16))
+        self.nest_lblApMat.setObjectName("nest_lblApMat")
+        self.nest_lblID = QLabel(self.centralwidget)
+        self.nest_lblID.setGeometry(QRect(20, 10, 291, 21))
+        font = QtGui.QFont()
+        font.setBold(True)
+        font.setWeight(75)
+        self.nest_lblID.setFont(font)
+        self.nest_lblID.setObjectName("nest_lblID")
+        self.nestApPat = QLineEdit(self.centralwidget)
+        self.nestApPat.setGeometry(QRect(140, 100, 181, 21))
+        self.nestApPat.setStyleSheet("border: 1px solid lightgray;")
+        self.nestApPat.setMaxLength(255)
+        self.nestApPat.setReadOnly(True)
+        self.nestApPat.setObjectName("nestApPat")
+        self.nest_lblApPat = QLabel(self.centralwidget)
+        self.nest_lblApPat.setGeometry(QRect(20, 100, 111, 16))
+        self.nest_lblApPat.setObjectName("nest_lblApPat")
+        self.nestCerrar = QPushButton(self.centralwidget)
+        self.nestCerrar.setGeometry(QRect(230, 160, 91, 32))
+        self.nestCerrar.setObjectName("nestCerrar")
+        self.lblID = QLabel(self.centralwidget)
+        self.lblID.setGeometry(QRect(20, 40, 91, 16))
+        self.lblID.setObjectName("lblID")
+        self.nestID = QLineEdit(self.centralwidget)
+        self.nestID.setEnabled(True)
+        self.nestID.setGeometry(QRect(140, 40, 181, 21))
+        self.nestID.setAutoFillBackground(False)
+        self.nestID.setStyleSheet("border: 1px solid lightgray;")
+        self.nestID.setMaxLength(8)
+        self.nestID.setReadOnly(True)
+        self.nestID.setObjectName("nestID")
+        self.nestNombres = QLineEdit(self.centralwidget)
+        self.nestNombres.setGeometry(QRect(140, 70, 181, 21))
+        self.nestNombres.setStyleSheet("border: 1px solid lightgray;")
+        self.nestNombres.setMaxLength(255)
+        self.nestNombres.setReadOnly(True)
+        self.nestNombres.setObjectName("nestNombres")
+        self.nest_lblNombres = QLabel(self.centralwidget)
+        self.nest_lblNombres.setGeometry(QRect(20, 70, 71, 16))
+        self.nest_lblNombres.setObjectName("nest_lblNombres")
+        self.nestCancelar = QPushButton(self.centralwidget)
+        self.nestCancelar.setGeometry(QRect(20, 160, 91, 32))
+        self.nestCancelar.setObjectName("nestCancelar")
+        _translate = QCoreApplication.translate
+        self.nest_lblApMat.setText(_translate("MainWindow", "Apellido materno:"))
+        self.nest_lblID.setText(_translate("MainWindow", "Eliminó un estudiante:"))
+        self.nest_lblApPat.setText(_translate("MainWindow", "Apellido paterno:"))
+        self.nestCerrar.setText(_translate("MainWindow", "Cerrar"))
+        self.lblID.setText(_translate("MainWindow", "ID estudiante:"))
+        self.nest_lblNombres.setText(_translate("MainWindow", "Nombres:"))
+        self.nestCancelar.setText(_translate("MainWindow", "Cancelar"))
+
+    def setDatos(self, stid, nom, pat, mat):
+        self.ident = stid
+        self.nombre = nom
+        self.apPat = pat
+        self.apMat = mat
+
+    def insDatos(self):
+        self.nestID.setText(str(self.ident))
+        self.nestNombres.setText(self.nombre)
+        self.nestApPat.setText(self.apPat)
+        self.nestApMat.setText(self.apMat)
+
+    def cancelarEliminacion(self):
+        try:
+            rutadb = os.path.dirname(os.path.abspath(__file__)) + r"/../logica/estudiante.sqlite"
+            conex = sqlite3.connect(rutadb)
+            revertir = conex.cursor()
+            revertir.execute(
+                "insert into estudiante (ID, nombres, apellidoPaterno, apellidoMaterno, agregado) values ('" + str(
+                    self.ident) + "','" + self.nombre + "','" + self.apPat + "','" + self.apMat + "',strftime('%Y-%m-%d %H:%M:%f', 'now'))")
+            conex.commit()
+            conex.close()
+            self.close()
+        except:
+            QMessageBox.information(self, "Error!", traceback.print_exc(), QMessageBox.Ok)
