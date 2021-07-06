@@ -5,8 +5,8 @@ import traceback
 
 from PyQt5 import QtGui, uic
 from PyQt5.QtCore import QCoreApplication, QRect, QSize, Qt
-from PyQt5.QtWidgets import QDialog, QLabel, QLineEdit, QMainWindow, QMessageBox, QPushButton, QTableWidgetItem, \
-    QWidget, QAbstractItemView
+from PyQt5.QtWidgets import QAbstractItemView, QDialog, QLabel, QLineEdit, QMainWindow, QMessageBox, QPushButton, \
+    QTableWidgetItem, QWidget
 
 
 class uiEstudiantes(QMainWindow):
@@ -44,19 +44,7 @@ class uiEstudiantes(QMainWindow):
         self.estAgregar.clicked.connect(self.anadirEstudiante)
         self.estEliminar.clicked.connect(self.eliminarEstudiante)
         self.estActualizar.clicked.connect(self.actualizarEstudiante)
-
-    # def validar_ID(self):
-    #     ID = self.estID.text()
-    #     validar = re.match(r'^[0-9]{1,8}$', ID, re.I)
-    #     if ID == "":
-    #         self.estID.setStyleSheet("border:1px solid yellow;")
-    #         return False
-    #     elif not validar:
-    #         self.estID.setStyleSheet("border:1px solid red;")
-    #         return False
-    #     else:
-    #         self.estID.setStyleSheet("border:1px solid green;")
-    #         return True
+        self.estSorteo.clicked.connect(self.sorteoEstudiante)
 
     def validar_nombres(self):
         nombres = self.estNombres.text()
@@ -368,6 +356,25 @@ class uiEstudiantes(QMainWindow):
                     self.cargarTabla()
             except:
                 QMessageBox.information(self, "Error!", traceback.print_exc(), QMessageBox.Ok)
+
+    def sorteoEstudiante(self):
+        try:
+            conex = sqlite3.connect(self.rutadb)
+            eleccion = conex.execute(
+                "select * from estudiante order by random() limit 1")
+            elementos = []
+            for fila, estudiante in enumerate(eleccion):
+                for columna, data in enumerate(estudiante):
+                    celda = QTableWidgetItem(str(data))
+                    elementos.append(celda.text())
+            conex.close()
+            self.popup = electoEstudiante()
+            self.popup.setDatos(elementos[0], elementos[1], elementos[2], elementos[3])
+            self.popup.insDatos()
+            self.popup.show()
+            self.popup.exec_()
+        except:
+            QMessageBox.information(self, "Error!", traceback.print_exc(), QMessageBox.Ok)
 
 
 class anadirEstudiante(QDialog):
@@ -724,6 +731,8 @@ class eliminarEstudiante(QDialog):
         self.nestNombres.setText(self.nombre)
         self.nestApPat.setText(self.apPat)
         self.nestApMat.setText(self.apMat)
+        self.nestApMat.setText(self.apMat)
+        self.nestApMat.setText(self.apMat)
 
     def cancelarEliminacion(self):
         try:
@@ -738,3 +747,96 @@ class eliminarEstudiante(QDialog):
             self.close()
         except:
             QMessageBox.information(self, "Error!", traceback.print_exc(), QMessageBox.Ok)
+
+
+class electoEstudiante(QDialog):
+    ident = 0
+    nombre = ""
+    apPat = ""
+    apMat = ""
+
+    def __init__(self):
+        # Inicializacion
+        super().__init__()
+        self.est_actualizar()
+
+        # Eventos
+        self.nestCerrar.clicked.connect(self.close)
+
+    def est_actualizar(self):
+        self.setWindowFlags(Qt.WindowCloseButtonHint)
+        self.setWindowTitle('¡Éxito!')
+        self.resize(340, 200)
+        self.setMinimumSize(QSize(340, 200))
+        self.setMaximumSize(QSize(340, 200))
+        self.centralwidget = QWidget(self)
+        self.centralwidget.setObjectName("centralwidget")
+        self.estApMat = QLineEdit(self.centralwidget)
+        self.estApMat.setGeometry(QRect(140, 130, 181, 21))
+        self.estApMat.setStyleSheet("")
+        self.estApMat.setMaxLength(255)
+        self.estApMat.setReadOnly(True)
+        self.estApMat.setObjectName("estApMat")
+        self.lblApMat = QLabel(self.centralwidget)
+        self.lblApMat.setGeometry(QRect(20, 130, 111, 16))
+        self.lblApMat.setObjectName("lblApMat")
+        self.estApPat = QLineEdit(self.centralwidget)
+        self.estApPat.setGeometry(QRect(140, 100, 181, 21))
+        self.estApPat.setStyleSheet("")
+        self.estApPat.setMaxLength(255)
+        self.estApPat.setReadOnly(True)
+        self.estApPat.setObjectName("estApPat")
+        self.lblID = QLabel(self.centralwidget)
+        self.lblID.setGeometry(QRect(20, 40, 91, 16))
+        self.lblID.setObjectName("lblID")
+        self.estNombres = QLineEdit(self.centralwidget)
+        self.estNombres.setGeometry(QRect(140, 70, 181, 21))
+        self.estNombres.setStyleSheet("")
+        self.estNombres.setMaxLength(255)
+        self.estNombres.setReadOnly(True)
+        self.estNombres.setObjectName("estNombres")
+        self.lblNombres = QLabel(self.centralwidget)
+        self.lblNombres.setGeometry(QRect(20, 70, 71, 16))
+        self.lblNombres.setObjectName("lblNombres")
+        self.lblApPat = QLabel(self.centralwidget)
+        self.lblApPat.setGeometry(QRect(20, 100, 111, 16))
+        self.lblApPat.setObjectName("lblApPat")
+        self.estID = QLineEdit(self.centralwidget)
+        self.estID.setEnabled(True)
+        self.estID.setGeometry(QRect(140, 40, 181, 21))
+        self.estID.setAutoFillBackground(False)
+        self.estID.setStyleSheet("")
+        self.estID.setMaxLength(8)
+        self.estID.setReadOnly(True)
+        self.estID.setObjectName("estID")
+        self.lblID_2 = QLabel(self.centralwidget)
+        self.lblID_2.setGeometry(QRect(20, 10, 131, 16))
+        font = QtGui.QFont()
+        font.setBold(True)
+        font.setWeight(75)
+        self.lblID_2.setFont(font)
+        self.lblID_2.setObjectName("lblID_2")
+        self.nestCerrar = QPushButton(self.centralwidget)
+        self.nestCerrar.setGeometry(QRect(230, 160, 91, 32))
+        self.nestCerrar.setObjectName("nestCerrar")
+        _translate = QCoreApplication.translate
+        self.lblApMat.setText(_translate("MainWindow", "Apellido materno:"))
+        self.lblID.setText(_translate("MainWindow", "ID estudiante:"))
+        self.lblNombres.setText(_translate("MainWindow", "Nombres:"))
+        self.lblApPat.setText(_translate("MainWindow", "Apellido paterno:"))
+        self.lblID_2.setText(_translate("MainWindow", "Estudiante electo:"))
+        self.nestCerrar.setText(_translate("MainWindow", "Cerrar"))
+
+    def setDatos(self, stid, nom, pat, mat):
+        self.ident = stid
+        self.nombre = nom
+        self.apPat = pat
+        self.apMat = mat
+
+    def insDatos(self):
+        self.estID.setText(str(self.ident))
+        self.estNombres.setText(self.nombre)
+        self.estApPat.setText(self.apPat)
+        self.estApMat.setText(self.apMat)
+        self.estApMat.setText(self.apMat)
+        self.estApMat.setText(self.apMat)

@@ -155,7 +155,7 @@
      </rect>
     </property>
     <property name="styleSheet">
-     <string notr="true">color: rgb(0,180,180);</string>
+     <string notr="true">color: rgb(0,170,170);</string>
     </property>
     <property name="text">
      <string>Sorteo</string>
