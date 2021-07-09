@@ -1,3 +1,4 @@
+import traceback
 from datetime import datetime
 from src.HU003.modelo.Estudiante import Estudiante
 from src.HU003.modelo.declarative_base import Session, engine, Base
@@ -27,8 +28,15 @@ def anadeBase():
     session.close()
 
 
+# def anadeEstudiantes():
+#     Base.metadata.create_all(engine)
+#     session = Session()
+#     session.close()
+
+
 if True:
     try:
         anadeBase()
+        # anadeEstudiantes()
     except:
-        print("Error")
+        traceback.print_exc()

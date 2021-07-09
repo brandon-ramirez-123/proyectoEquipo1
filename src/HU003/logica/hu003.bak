@@ -20,6 +20,7 @@ class estudiantesMain(QMainWindow):
     def __init__(self):
         # Inicializacion
         super().__init__()
+        # QMainWindow.__init__(self)
         rutaui = os.path.dirname(os.path.abspath(__file__)) + r"/../vista/hu003_estudiantes.ui"
         uic.loadUi(rutaui, self)
         self.setWindowTitle("Estudiantes")
@@ -32,6 +33,7 @@ class estudiantesMain(QMainWindow):
         self.cargarTabla()
 
         # Eventos
+        # self.estID.textChanged.connect(self.validar_ID)
         self.estNombres.textChanged.connect(self.validar_nombres)
         self.estApPat.textChanged.connect(self.validar_apellidoP)
         self.estApMat.textChanged.connect(self.validar_apellidoM)
@@ -308,8 +310,7 @@ class estudiantesMain(QMainWindow):
                     conex = sqlite3.connect(self.rutadb)
                     eleccion = conex.cursor()
                     eleccion.execute(
-                        "update estudiante set nombres='" + nombN + "', apellidoPaterno='" + apatN + "', apellidoMaterno='" + amatN + "', agregado='" + str(
-                            datetime.now()) + "') where ID='" + self.ident + "'")
+                        "update estudiante set nombres='" + nombN + "', apellidoPaterno='" + apatN + "', apellidoMaterno='" + amatN + "', agregado='"+str(datetime.now())+"') where ID='" + self.ident + "'")
                     conex.commit()
                     conex.close()
                     paso = True
