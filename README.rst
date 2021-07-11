@@ -3,13 +3,20 @@ proyectoequipo1
 ===============
 
 
-Add a short description here!
+Universidad Nacional del Centro del Perú
+Doctorado en Ingeniería de Sistema
 
+Equipo de desarrollo 01 - Tópicos Avanzados en Ingenieria del Software
+
+Ramírez Romero, Brandon Vicente
+Torres Rivera, Pedro Miguel
+Pongo Huamán, Frida
+De La Cruz Cerrón, Leonel Aldo
 
 Description
 ===========
 
-A longer description of your project goes here...
+Proyecto final de la asignatura
 
 
 .. _pyscaffold-notes:
