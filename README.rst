@@ -4,7 +4,7 @@ proyectoequipo1
 
 
 Universidad Nacional del Centro del Perú
-Doctorado en Ingeniería de Sistema
+Doctorado en Ingeniería de Sistemas
 
 Equipo de desarrollo 01 - Tópicos Avanzados en Ingenieria del Software
 
