@@ -307,9 +307,7 @@ class estudiantesMain(QMainWindow):
                 try:
                     conex = sqlite3.connect(self.rutadb)
                     eleccion = conex.cursor()
-                    eleccion.execute(
-                        "update estudiante set nombres='" + nombN + "', apellidoPaterno='" + apatN + "', apellidoMaterno='" + amatN + "', agregado='" + str(
-                            datetime.now()) + "') where ID='" + self.ident + "'")
+                    eleccion.execute("update estudiante set nombres='" + nombN + "', apellidoPaterno='" + apatN + "', apellidoMaterno='" + amatN + "', agregado='" + str(datetime.now()) + "' where ID='" + self.ident + "'")
                     conex.commit()
                     conex.close()
                     paso = True
